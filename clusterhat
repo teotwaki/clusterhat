@@ -67,7 +67,10 @@ pizero_enable() {
   echo "Turning on P$index"
   if ! gpio_enable "$(($gpio_base_address + $index))"; then
     echo "P$index already turned on. Skipping."
+    return 1
   fi
+
+  return 0
 }
 
 pizero_disable() {
@@ -80,7 +83,10 @@ pizero_disable() {
   echo "Turning off P$index"
   if ! gpio_disable "$(($gpio_base_address + $index))"; then
     echo "P$index already turned off. Skipping."
+    return 1
   fi
+
+  return 0
 }
 
 usage() {
@@ -131,13 +137,14 @@ run() {
   for device in $controller_devices; do
     if [[ $controller_mode == "on" ]]; then
       pizero_enable "$device"
+
+      if [[ $? == 0 && $(wc -w <<< "$controller_devices") > 1 ]]; then
+        sleep "$rampup_delay"
+      fi
     else
       pizero_disable "$device"
     fi
 
-    if [[ $(wc -w <<< "$controller_devices") > 1 ]]; then
-      sleep "$rampup_delay"
-    fi
   done
 
   # Turn "Alert" LED off
