@@ -2,12 +2,15 @@
 # ClusterHAT controller
 
 GPIO_LED="21"
-GPIO_P1="22"
-GPIO_P2="23"
-GPIO_P3="24"
-GPIO_P4="25"
+GPIO_BASE_ADDRESS="$GPIO_LED"
 GPIO_ON="1"
 GPIO_OFF="0"
+RAMPUP_DELAY=2
+
+fatal() {
+  echo "$*" 1>&2
+  exit -1
+}
 
 gpio_enable() {
   local address="$1"
@@ -25,6 +28,30 @@ led_enable() {
 
 led_disable() {
   gpio_disable "$GPIO_LED"
+}
+
+pizero_enable() {
+  local index="$1"
+
+  if [[ $index < 1 || $index > 4 ]]; then
+    fatal "Invalid pizero index value: '$index'"
+  fi
+
+  echo "Turning on P1"
+  gpio_enable "$(("$GPIO_BASE_ADDRESS" + "$index"))"
+
+  sleep "$RAMPUP_DELAY"
+}
+
+pizero_disable() {
+  local index="$1"
+
+  if [[ $index < 1 || $index > 4 ]]; then
+    fatal "Invalid pizero index value: '$index'"
+  fi
+
+  echo "Turning off P1"
+  gpio_disable "$(("$GPIO_BASE_ADDRESS" + "$index"))"
 }
 
 if [ $# -gt 0 ];then
@@ -68,27 +95,19 @@ if [ "$MODE" = "on" ]; then
   led_enable
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p1") == "y" ]];then
-    echo "Turning on P1"
-    gpio_enable "$GPIO_P1"
-    sleep 2
+    pizero_enable 1
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p2") == "y" ]];then
-    echo "Turning on P2"
-    gpio_enable "$GPIO_P2"
-    sleep 2
+    pizero_enable 2
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p3") == "y" ]];then
-    echo "Turning on P3"
-    gpio_enable "$GPIO_P3"
-    sleep 2
+    pizero_enable 3
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p4") == "y" ]];then
-    echo "Turning on P4"
-    gpio_enable "$GPIO_P4"
-    sleep 2
+    pizero_enable 4
   fi
 
   # Turn "Alert" LED off
@@ -99,23 +118,19 @@ elif [ "$MODE" = "off" ];then
   led_enable
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p1") == "y" ]];then
-    echo "Turning off P1"
-    gpio_enable "$GPIO_P1"
+    pizero_disable 1
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p2") == "y" ]];then
-    echo "Turning off P2"
-    gpio_enable "$GPIO_P2"
+    pizero_disable 2
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p3") == "y" ]];then
-    echo "Turning off P3"
-    gpio_enable "$GPIO_P3"
+    pizero_disable 3
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p4") == "y" ]];then
-    echo "Turning off P4"
-    gpio_enable "$GPIO_P4"
+    pizero_disable 4
   fi
 
   # Turn "Alert" LED off
