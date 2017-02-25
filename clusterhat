@@ -7,8 +7,15 @@ GPIO_ON="1"
 GPIO_OFF="0"
 RAMPUP_DELAY=2
 
-fatal() {
+CONTROLLER_MODE=
+CONTROLLER_DEVICES=
+
+error() {
   echo "$*" 1>&2
+}
+
+fatal() {
+  error "$*"
   exit -1
 }
 
@@ -37,10 +44,8 @@ pizero_enable() {
     fatal "Invalid pizero index value: '$index'"
   fi
 
-  echo "Turning on P1"
-  gpio_enable "$(("$GPIO_BASE_ADDRESS" + "$index"))"
-
-  sleep "$RAMPUP_DELAY"
+  echo "Turning on P$index"
+  gpio_enable "$(($GPIO_BASE_ADDRESS + $index))"
 }
 
 pizero_disable() {
@@ -50,92 +55,79 @@ pizero_disable() {
     fatal "Invalid pizero index value: '$index'"
   fi
 
-  echo "Turning off P1"
-  gpio_disable "$(("$GPIO_BASE_ADDRESS" + "$index"))"
+  echo "Turning off P$index"
+  gpio_disable "$(($GPIO_BASE_ADDRESS + $index))"
 }
 
-if [ $# -gt 0 ];then
-  MODE=$1
-else
+usage() {
   echo
-  echo "Usage:"
-  echo " $0 <action> [<device>] [<device>]"
-  echo " action = on / off"
-  echo " device = all / p1 / p2 / p3 / p4"
-  echo " If device is missing the action will be performed on all devices"
+  echo "Usage: $0 <action> [<device>] [<device>] ..."
+  echo "  action = on / off"
+  echo "  device = all / p1 / p2 / p3 / p4"
   echo
   echo "Examples:"
-  echo "$0 on p1 p3 # Turns on P1 and P3"
-  echo "$0 off all # Turns off P1-4"
-  echo
-  exit
-fi
-
-if [ $# -gt 1 ]; then
-  devices=("$@")
-else
-  devices=("all")
-fi
-
-function contains() {
-  local n=$#
-  local value=${!n}
-  for ((i=1;i < $#;i++)) {
-    if [ "${!i}" == "${value}" ]; then
-      echo "y"
-      return 0
-    fi
-  }
-  echo "n"
-  return 1
+  echo "  $0 on p1 p3 # Turns on P1 and P3"
+  echo "  $0 off all # Turns off P1-4"
 }
 
-if [ "$MODE" = "on" ]; then
+parse_arguments() {
+  if [[ $# < 2 ]]; then
+    usage
+    exit 1
+  fi
+
+  if [[ ${1,,} =~ on|off ]]; then
+    CONTROLLER_MODE=${1,,}
+  else
+    error "Unknown mode: '$1'"
+    usage
+    exit 2
+  fi
+
+  shift
+
+  while (("$#")); do
+    local arg=${1,,}
+    if [[ $arg == "all" ]]; then
+      CONTROLLER_DEVICES="1 2 3 4"
+      break
+    elif [[ $arg =~ ^p([0-9])$ ]]; then
+      if [[ ${BASH_REMATCH[1]} < 1 || ${BASH_REMATCH[1]} > 4 ]]; then
+        error "Invalid pizero identifier: '$1'"
+        usage
+        exit 3
+      fi
+      CONTROLLER_DEVICES="$CONTROLLER_DEVICES ${BASH_REMATCH[1]}"
+    else
+      error "Invalid pizero identifier: '$1'"
+      usage
+      exit 4
+    fi
+    shift
+  done
+
+  CONTROLLER_DEVICES=$(tr " " "\n" <<< "$CONTROLLER_DEVICES" | sort -u)
+}
+
+run() {
   # Turn "Alert" LED on whilst we're running
   led_enable
 
-  if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p1") == "y" ]];then
-    pizero_enable 1
-  fi
+  for device in $CONTROLLER_DEVICES; do
+    if [[ $CONTROLLER_MODE == "on" ]]; then
+      pizero_enable "$device"
+    else
+      pizero_disable "$device"
+    fi
 
-  if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p2") == "y" ]];then
-    pizero_enable 2
-  fi
-
-  if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p3") == "y" ]];then
-    pizero_enable 3
-  fi
-
-  if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p4") == "y" ]];then
-    pizero_enable 4
-  fi
+    if [[ $(wc -w <<< "$CONTROLLER_DEVICES") > 1 ]]; then
+      sleep "$RAMPUP_DELAY"
+    fi
+  done
 
   # Turn "Alert" LED off
   led_disable
+}
 
-elif [ "$MODE" = "off" ];then
-  # Turn "Alert" LED on whilst we're running
-  led_enable
-
-  if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p1") == "y" ]];then
-    pizero_disable 1
-  fi
-
-  if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p2") == "y" ]];then
-    pizero_disable 2
-  fi
-
-  if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p3") == "y" ]];then
-    pizero_disable 3
-  fi
-
-  if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p4") == "y" ]];then
-    pizero_disable 4
-  fi
-
-  # Turn "Alert" LED off
-  led_disable
-else
-  echo "ERROR: Unknown Mode"
-  exit
-fi
+parse_arguments $*
+run
