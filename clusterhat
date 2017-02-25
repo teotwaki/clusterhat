@@ -9,6 +9,16 @@ GPIO_P4="25"
 GPIO_ON="1"
 GPIO_OFF="0"
 
+gpio_enable() {
+  local address="$1"
+  gpio write "$address" "$GPIO_ON"
+}
+
+gpio_disable() {
+  local address="$1"
+  gpio write "$address" "$GPIO_OFF"
+}
+
 if [ $# -gt 0 ];then
   MODE=$1
 else
@@ -47,61 +57,61 @@ function contains() {
 
 if [ "$MODE" = "on" ]; then
   # Turn "Alert" LED on whilst we're running
-  gpio write "$GPIO_LED" "$GPIO_ON"
+  gpio_enable "$GPIO_LED"
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p1") == "y" ]];then
     echo "Turning on P1"
-    gpio write "$GPIO_P1" "$GPIO_ON"
+    gpio_enable "$GPIO_P1"
     sleep 2
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p2") == "y" ]];then
     echo "Turning on P2"
-    gpio write "$GPIO_P2" "$GPIO_ON"
+    gpio_enable "$GPIO_P2"
     sleep 2
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p3") == "y" ]];then
     echo "Turning on P3"
-    gpio write "$GPIO_P3" "$GPIO_ON"
+    gpio_enable "$GPIO_P3"
     sleep 2
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p4") == "y" ]];then
     echo "Turning on P4"
-    gpio write "$GPIO_P4" "$GPIO_ON"
+    gpio_enable "$GPIO_P4"
     sleep 2
   fi
 
   # Turn "Alert" LED off
-  gpio write "$GPIO_LED" "$GPIO_OFF"
+  gpio_disable "$GPIO_LED"
 
 elif [ "$MODE" = "off" ];then
   # Turn "Alert" LED on whilst we're running
-  gpio write "$GPIO_LED" "$GPIO_ON"
+  gpio_enable "$GPIO_LED"
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p1") == "y" ]];then
     echo "Turning off P1"
-    gpio write "$GPIO_P1" "$GPIO_OFF"
+    gpio_enable "$GPIO_P1"
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p2") == "y" ]];then
     echo "Turning off P2"
-    gpio write "$GPIO_P2" "$GPIO_OFF"
+    gpio_enable "$GPIO_P2"
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p3") == "y" ]];then
     echo "Turning off P3"
-    gpio write "$GPIO_P3" "$GPIO_OFF"
+    gpio_enable "$GPIO_P3"
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p4") == "y" ]];then
     echo "Turning off P4"
-    gpio write "$GPIO_P4" "$GPIO_OFF"
+    gpio_enable "$GPIO_P4"
   fi
 
   # Turn "Alert" LED off
-  gpio write "$GPIO_LED" "$GPIO_OFF"
+  gpio_disable "$GPIO_LED"
 
 else
   echo "ERROR: Unknown Mode"
