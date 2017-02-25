@@ -11,9 +11,15 @@ error() {
   echo "$*" 1>&2
 }
 
-fatal() {
-  error "$*"
+fatal_error() {
+  error $*
   exit -1
+}
+
+cli_error() {
+  error $*
+  usage
+  exit -2
 }
 
 gpio_enable() {
@@ -38,7 +44,7 @@ pizero_enable() {
   local index="$1"
 
   if [[ $index < 1 || $index > 4 ]]; then
-    fatal "Invalid pizero index value: '$index'"
+    fatal_error "Invalid pizero index value: '$index'"
   fi
 
   echo "Turning on P$index"
@@ -49,7 +55,7 @@ pizero_disable() {
   local index="$1"
 
   if [[ $index < 1 || $index > 4 ]]; then
-    fatal "Invalid pizero index value: '$index'"
+    fatal_error "Invalid pizero index value: '$index'"
   fi
 
   echo "Turning off P$index"
@@ -76,9 +82,7 @@ parse_arguments() {
   if [[ ${1,,} =~ on|off ]]; then
     controller_mode=${1,,}
   else
-    error "Unknown mode: '$1'"
-    usage
-    exit 2
+    cli_error "Unknown mode: '$1'"
   fi
 
   shift
@@ -89,16 +93,9 @@ parse_arguments() {
       controller_devices="1 2 3 4"
       break
     elif [[ $arg =~ ^p([0-9])$ ]]; then
-      if [[ ${BASH_REMATCH[1]} < 1 || ${BASH_REMATCH[1]} > 4 ]]; then
-        error "Invalid pizero identifier: '$1'"
-        usage
-        exit 3
-      fi
       controller_devices="$controller_devices ${BASH_REMATCH[1]}"
     else
-      error "Invalid pizero identifier: '$1'"
-      usage
-      exit 4
+      cli_error "Invalid pizero identifier: '$1'"
     fi
     shift
   done
