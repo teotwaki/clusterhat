@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 # ClusterHAT controller
 
 gpio_base_address="21"
