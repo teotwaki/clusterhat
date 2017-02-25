@@ -19,6 +19,14 @@ gpio_disable() {
   gpio write "$address" "$GPIO_OFF"
 }
 
+led_enable() {
+  gpio_enable "$GPIO_LED"
+}
+
+led_disable() {
+  gpio_disable "$GPIO_LED"
+}
+
 if [ $# -gt 0 ];then
   MODE=$1
 else
@@ -57,7 +65,7 @@ function contains() {
 
 if [ "$MODE" = "on" ]; then
   # Turn "Alert" LED on whilst we're running
-  gpio_enable "$GPIO_LED"
+  led_enable
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p1") == "y" ]];then
     echo "Turning on P1"
@@ -84,11 +92,11 @@ if [ "$MODE" = "on" ]; then
   fi
 
   # Turn "Alert" LED off
-  gpio_disable "$GPIO_LED"
+  led_disable
 
 elif [ "$MODE" = "off" ];then
   # Turn "Alert" LED on whilst we're running
-  gpio_enable "$GPIO_LED"
+  led_enable
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p1") == "y" ]];then
     echo "Turning off P1"
@@ -111,8 +119,7 @@ elif [ "$MODE" = "off" ];then
   fi
 
   # Turn "Alert" LED off
-  gpio_disable "$GPIO_LED"
-
+  led_disable
 else
   echo "ERROR: Unknown Mode"
   exit
