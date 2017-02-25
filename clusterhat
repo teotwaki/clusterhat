@@ -69,9 +69,9 @@ parse_arguments() {
     exit 1
   fi
 
-  if [[ ${1,,} =~ on|off ]]; then
-    controller_mode=${1,,}
-  else
+  controller_mode=${1,,}
+
+  if [[ $controller_mode != "on" && $controller_mode != "off" ]]; then
     cli_error "Unknown mode: '$1'"
   fi
 
