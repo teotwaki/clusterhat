@@ -3,9 +3,14 @@
 
 gpio_base_address="21"
 rampup_delay=2
-force_write=false
 controller_mode=
 controller_devices=
+
+if [[ -n $FORCE_WRITE ]]; then
+  force_write=true
+else
+  force_write=false
+fi
 
 error() {
   echo "$*" 1>&2
