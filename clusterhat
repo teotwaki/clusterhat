@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/env bash
 # ClusterHAT controller
 
 if [ $# -gt 0 ];then
