@@ -22,22 +22,12 @@ cli_error() {
   exit -2
 }
 
-gpio_enable() {
-  local address="$1"
-  gpio write "$address" 1
-}
-
-gpio_disable() {
-  local address="$1"
-  gpio write "$address" 0
-}
-
 led_enable() {
-  gpio_enable "$gpio_base_address"
+  gpio write "$gpio_base_address" 1
 }
 
 led_disable() {
-  gpio_disable "$gpio_base_address"
+  gpio write "$gpio_base_address" 0
 }
 
 pizero_enable() {
@@ -48,7 +38,7 @@ pizero_enable() {
   fi
 
   echo "Turning on P$index"
-  gpio_enable "$(($gpio_base_address + $index))"
+  gpio write "$(($gpio_base_address + $index))" 1
 }
 
 pizero_disable() {
@@ -59,7 +49,7 @@ pizero_disable() {
   fi
 
   echo "Turning off P$index"
-  gpio_disable "$(($gpio_base_address + $index))"
+  gpio write "$(($gpio_base_address + $index))" 0
 }
 
 usage() {
