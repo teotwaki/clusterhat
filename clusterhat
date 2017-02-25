@@ -1,11 +1,11 @@
 #!/bin/env bash
 # ClusterHAT controller
 
-GPIO_BASE_ADDRESS="21"
-RAMPUP_DELAY=2
+gpio_base_address="21"
+rampup_delay=2
 
-CONTROLLER_MODE=
-CONTROLLER_DEVICES=
+controller_mode=
+controller_devices=
 
 error() {
   echo "$*" 1>&2
@@ -27,11 +27,11 @@ gpio_disable() {
 }
 
 led_enable() {
-  gpio_enable "$GPIO_BASE_ADDRESS"
+  gpio_enable "$gpio_base_address"
 }
 
 led_disable() {
-  gpio_disable "$GPIO_BASE_ADDRESS"
+  gpio_disable "$gpio_base_address"
 }
 
 pizero_enable() {
@@ -42,7 +42,7 @@ pizero_enable() {
   fi
 
   echo "Turning on P$index"
-  gpio_enable "$(($GPIO_BASE_ADDRESS + $index))"
+  gpio_enable "$(($gpio_base_address + $index))"
 }
 
 pizero_disable() {
@@ -53,7 +53,7 @@ pizero_disable() {
   fi
 
   echo "Turning off P$index"
-  gpio_disable "$(($GPIO_BASE_ADDRESS + $index))"
+  gpio_disable "$(($gpio_base_address + $index))"
 }
 
 usage() {
@@ -74,7 +74,7 @@ parse_arguments() {
   fi
 
   if [[ ${1,,} =~ on|off ]]; then
-    CONTROLLER_MODE=${1,,}
+    controller_mode=${1,,}
   else
     error "Unknown mode: '$1'"
     usage
@@ -86,7 +86,7 @@ parse_arguments() {
   while (("$#")); do
     local arg=${1,,}
     if [[ $arg == "all" ]]; then
-      CONTROLLER_DEVICES="1 2 3 4"
+      controller_devices="1 2 3 4"
       break
     elif [[ $arg =~ ^p([0-9])$ ]]; then
       if [[ ${BASH_REMATCH[1]} < 1 || ${BASH_REMATCH[1]} > 4 ]]; then
@@ -94,7 +94,7 @@ parse_arguments() {
         usage
         exit 3
       fi
-      CONTROLLER_DEVICES="$CONTROLLER_DEVICES ${BASH_REMATCH[1]}"
+      controller_devices="$controller_devices ${BASH_REMATCH[1]}"
     else
       error "Invalid pizero identifier: '$1'"
       usage
@@ -103,22 +103,22 @@ parse_arguments() {
     shift
   done
 
-  CONTROLLER_DEVICES=$(tr " " "\n" <<< "$CONTROLLER_DEVICES" | sort -u)
+  controller_devices=$(tr " " "\n" <<< "$controller_devices" | sort -u)
 }
 
 run() {
   # Turn "Alert" LED on whilst we're running
   led_enable
 
-  for device in $CONTROLLER_DEVICES; do
-    if [[ $CONTROLLER_MODE == "on" ]]; then
+  for device in $controller_devices; do
+    if [[ $controller_mode == "on" ]]; then
       pizero_enable "$device"
     else
       pizero_disable "$device"
     fi
 
-    if [[ $(wc -w <<< "$CONTROLLER_DEVICES") > 1 ]]; then
-      sleep "$RAMPUP_DELAY"
+    if [[ $(wc -w <<< "$controller_devices") > 1 ]]; then
+      sleep "$rampup_delay"
     fi
   done
 
