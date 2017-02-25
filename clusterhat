@@ -1,6 +1,14 @@
 #!/bin/env bash
 # ClusterHAT controller
 
+GPIO_LED="21"
+GPIO_P1="22"
+GPIO_P2="23"
+GPIO_P3="24"
+GPIO_P4="25"
+GPIO_ON="1"
+GPIO_OFF="0"
+
 if [ $# -gt 0 ];then
   MODE=$1
 else
@@ -39,61 +47,61 @@ function contains() {
 
 if [ "$MODE" = "on" ]; then
   # Turn "Alert" LED on whilst we're running
-  gpio write 21 1
+  gpio write "$GPIO_LED" "$GPIO_ON"
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p1") == "y" ]];then
     echo "Turning on P1"
-    gpio write 22 1
+    gpio write "$GPIO_P1" "$GPIO_ON"
     sleep 2
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p2") == "y" ]];then
     echo "Turning on P2"
-    gpio write 23 1
+    gpio write "$GPIO_P2" "$GPIO_ON"
     sleep 2
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p3") == "y" ]];then
     echo "Turning on P3"
-    gpio write 24 1
+    gpio write "$GPIO_P3" "$GPIO_ON"
     sleep 2
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p4") == "y" ]];then
     echo "Turning on P4"
-    gpio write 25 1
+    gpio write "$GPIO_P4" "$GPIO_ON"
     sleep 2
   fi
 
   # Turn "Alert" LED off
-  gpio write 21 0
+  gpio write "$GPIO_LED" "$GPIO_OFF"
 
 elif [ "$MODE" = "off" ];then
   # Turn "Alert" LED on whilst we're running
-  gpio write 21 1
+  gpio write "$GPIO_LED" "$GPIO_ON"
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p1") == "y" ]];then
     echo "Turning off P1"
-    gpio write 22 0
+    gpio write "$GPIO_P1" "$GPIO_OFF"
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p2") == "y" ]];then
     echo "Turning off P2"
-    gpio write 23 0
+    gpio write "$GPIO_P2" "$GPIO_OFF"
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p3") == "y" ]];then
     echo "Turning off P3"
-    gpio write 24 0
+    gpio write "$GPIO_P3" "$GPIO_OFF"
   fi
 
   if [[ $(contains "${devices[@]}" "all") == "y" ]] || [[ $(contains "${devices[@]}" "p4") == "y" ]];then
     echo "Turning off P4"
-    gpio write 25 0
+    gpio write "$GPIO_P4" "$GPIO_OFF"
   fi
 
   # Turn "Alert" LED off
-  gpio write 21 0
+  gpio write "$GPIO_LED" "$GPIO_OFF"
 
 else
   echo "ERROR: Unknown Mode"
