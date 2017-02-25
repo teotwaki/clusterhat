@@ -1,10 +1,7 @@
 #!/bin/env bash
 # ClusterHAT controller
 
-GPIO_LED="21"
-GPIO_BASE_ADDRESS="$GPIO_LED"
-GPIO_ON="1"
-GPIO_OFF="0"
+GPIO_BASE_ADDRESS="21"
 RAMPUP_DELAY=2
 
 CONTROLLER_MODE=
@@ -21,20 +18,20 @@ fatal() {
 
 gpio_enable() {
   local address="$1"
-  gpio write "$address" "$GPIO_ON"
+  gpio write "$address" 1
 }
 
 gpio_disable() {
   local address="$1"
-  gpio write "$address" "$GPIO_OFF"
+  gpio write "$address" 0
 }
 
 led_enable() {
-  gpio_enable "$GPIO_LED"
+  gpio_enable "$GPIO_BASE_ADDRESS"
 }
 
 led_disable() {
-  gpio_disable "$GPIO_LED"
+  gpio_disable "$GPIO_BASE_ADDRESS"
 }
 
 pizero_enable() {
